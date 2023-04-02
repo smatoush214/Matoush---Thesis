@@ -1,0 +1,673 @@
+---
+title: "Thesis"
+output: pdf_document
+---
+
+Libraries 
+```{r}
+library(readxl)
+library(ggplot2)
+library(gridExtra)
+library(cowplot)
+library(KMsurv)
+library(survival)
+library(MASS)
+```
+
+
+Reading in pathway to excel document that contains all injuries with statistics for each respective season
+```{r}
+injurydata=read_excel("C:\\Sammi\\Thesis\\Complete Injury Log with Stats.xlsx")
+injurydata
+```
+
+
+Bar graphs for each position: point guard, shooting guard, small forward, power forward, center for each injury type: arm, back, finger, foot, hand, head, leg, toe, other
+
+```{r}
+
+par(mfrow=c(2,3))
+
+# Bar graph for point guard position
+pg<-data.frame(injury=c("Arm", "Back", "Finger", "Foot", "Hand", "Head", "Leg", "Toe", "Other"), frequency=c(18,25,10,63,6,6,128,
+                                                            12,19))
+
+pggraph<-ggplot(pg,aes(x=injury, y=frequency)) +
+  geom_bar(stat="identity") +
+  ylim(0,130) 
+
+pggraph2<-print(pggraph + ggtitle("Point Guards"))
+
+
+# Bar graph for shooting guard position
+sg<-data.frame(injury=c("Arm", "Back", "Finger", "Foot", "Hand", "Head", "Leg", "Toe", "Other"), frequency=c(19,13,8,69,18,7,126,
+                                                            8,16))
+
+sggraph<-ggplot(sg,aes(x=injury, y=frequency)) +
+  geom_bar(stat="identity") +
+  ylim(0,130)
+
+sggraph2<-print(sggraph + ggtitle("Shooting Guards"))
+
+# Bar graph for small forward position
+sf<-data.frame(injury=c("Arm", "Back", "Finger", "Foot", "Hand", "Head", "Leg", "Toe", "Other"), frequency=c(11,16,5,50,11,5,92,
+                                                            11,12))
+
+sfgraph<-ggplot(sf,aes(x=injury, y=frequency)) +
+  geom_bar(stat="identity") +
+  ylim(0,130)
+
+sfgraph2<-print(sfgraph + ggtitle("Small Forwards"))
+
+# Bar graph for power forward position
+pf<-data.frame(injury=c("Arm", "Back", "Finger", "Foot", "Hand", "Head", "Leg", "Toe", "Other"), frequency=c(12,19,5,48,8,12,83,
+                                                            9,17))
+
+pfgraph<-ggplot(pf,aes(x=injury, y=frequency)) +
+  geom_bar(stat="identity") +
+  ylim(0,130)
+
+pfgraph2<-print(pfgraph + ggtitle("Power Forwards"))
+
+# Bar graph for center position
+cen<-data.frame(injury=c("Arm", "Back", "Finger", "Foot", "Hand", "Head", "Leg", "Toe", "Other"), frequency=c(13,15,10,56,7,9,44,
+                                                            2,18))
+
+cengraph<-ggplot(cen,aes(x=injury, y=frequency)) +
+  geom_bar(stat="identity") +
+  ylim(0,130)
+
+cengraph2<-print(cengraph + ggtitle("Centers"))
+
+# bar graphs for all the pg, sg, sf, pf, cen
+grid.arrange(pggraph,sggraph,sfgraph,pfgraph,cengraph, 
+          ncol = 2, nrow = 3)
+```
+
+Box plots for each injury separated by the 5 positions
+```{r}
+# arm injury data
+arm<-data.frame(injurydata[injurydata$Groupings=="Arm",])
+
+
+# complete arm injury 
+arm_complete<-arm[complete.cases(arm),]
+
+
+
+# arm injury boxplot
+ggplot(arm_complete, aes(x=Position, y=Days.on.IL, fill=Position)) + 
+  geom_boxplot(alpha=0.3) +
+  theme(legend.position="none")+
+  ggtitle("Arm")+
+  ylim(-3,45)
+
+
+# back injury data
+back<-data.frame(injurydata[injurydata$Groupings=="Back",])
+
+
+# complete back injury 
+back_complete<-back[complete.cases(back),]
+
+
+# back injury boxplot
+ggplot(back_complete, aes(x=Position, y=Days.on.IL, fill=Position)) + 
+  geom_boxplot(alpha=0.3) +
+  theme(legend.position="none")+
+  ggtitle("Back")+
+  ylim(-3,20)
+
+
+# finger injury data
+finger<-data.frame(injurydata[injurydata$Groupings=="Finger",])
+
+
+# complete finger injury 
+finger_complete<-finger[complete.cases(finger),]
+
+
+# finger injury boxplot
+ggplot(finger_complete, aes(x=Position, y=Days.on.IL, fill=Position)) + 
+  geom_boxplot(alpha=0.3) +
+  theme(legend.position="none")+
+  ggtitle("Finger")+
+  ylim(-3,40)
+
+
+# foot injury data
+foot<-data.frame(injurydata[injurydata$Groupings=="Foot",])
+
+# complete foot injury 
+foot_complete<-foot[complete.cases(foot),]
+
+
+# foot injury boxplot
+ggplot(foot_complete, aes(x=Position, y=Days.on.IL, fill=Position)) + 
+  geom_boxplot(alpha=0.3) +
+  theme(legend.position="none")+
+  ggtitle("Foot")+
+  ylim(-3,35)
+
+
+# hand injury data
+hand<-data.frame(injurydata[injurydata$Groupings=="Hand",])
+
+
+# complete hand injury 
+hand_complete<-hand[complete.cases(hand),]
+
+
+# hand injury boxplot
+ggplot(hand_complete, aes(x=Position, y=Days.on.IL, fill=Position)) + 
+  geom_boxplot(alpha=0.3) +
+  theme(legend.position="none")+
+  ggtitle("Hand")+
+  ylim(-3,40)
+
+
+# head injury data
+head<-data.frame(injurydata[injurydata$Groupings=="Head",])
+
+
+# complete head injury 
+head_complete<-head[complete.cases(head),]
+
+
+# head injury boxplot
+ggplot(head, aes(x=Position, y=Days.on.IL, fill=Position)) + 
+  geom_boxplot(alpha=0.3) +
+  theme(legend.position="none")+
+  ggtitle("Head")+
+  ylim(-3,15)
+
+
+# leg injury data
+leg<-data.frame(injurydata[injurydata$Groupings=="Leg",])
+
+
+# complete leg injury 
+leg_complete<-leg[complete.cases(leg),]
+
+
+# leg injury boxplot
+ggplot(leg_complete, aes(x=Position, y=Days.on.IL, fill=Position)) + 
+  geom_boxplot(alpha=0.3) +
+  theme(legend.position="none")+
+  ggtitle("Leg")+
+  ylim(0,30)
+
+
+# toe injury data
+toe<-data.frame(injurydata[injurydata$Groupings=="Toe",])
+
+# complete toe injury 
+toe_complete<-toe[complete.cases(toe),]
+
+
+# toe injury boxplot
+ggplot(toe_complete, aes(x=Position, y=Days.on.IL, fill=Position)) + 
+  geom_boxplot(alpha=0.3) +
+  theme(legend.position="none")+
+  ggtitle("Toe")+
+  ylim(-3,30)
+
+
+# other injury data
+other<-data.frame(injurydata[injurydata$Groupings=="Other",])
+
+
+# complete other injury 
+other_complete<-other[complete.cases(other),]
+
+
+# other injury boxplot
+ggplot(other_complete, aes(x=Position, y=Days.on.IL, fill=Position)) + 
+  geom_boxplot(alpha=0.3) +
+  theme(legend.position="none")+
+  ggtitle("Other")+
+  ylim(-3,15)
+```
+
+Mean age of player when an injury / a certain type of injury occurs
+```{r}
+# mean age of player with an injury overall in dataset
+overall_mean<-mean(injurydata$Age,na.rm=TRUE)
+
+# mean age of a player with arm injuries
+arm_mean<-mean(arm$Age,na.rm=TRUE)
+# less than overall mean
+
+#mean age of a player with back injuries
+back_mean<-mean(back$Age,na.rm=TRUE)
+# less than overall mean
+
+#mean age of a player with finger injuries
+finger_mean<-mean(finger$Age,na.rm=TRUE)
+# less than overall mean
+
+#mean age of a player with foot injuries
+foot_mean<-mean(foot$Age,na.rm=TRUE)
+# less than overall mean
+
+#mean age of a player with hand injuries
+hand_mean<-mean(hand$Age,na.rm=TRUE)
+# greater than overall mean
+
+#mean age of a player with head injuries
+head_mean<-mean(head$Age,na.rm=TRUE)
+# less than overall mean
+
+#mean age of a player with leg injuries
+leg_mean<-mean(leg$Age,na.rm=TRUE)
+# greater than overall mean
+
+#mean age of a player with toe injuries
+toe_mean<-mean(toe$Age,na.rm=TRUE)
+# less than overall mean
+
+#mean age of a player with other injuries
+other_mean<-mean(other$Age,na.rm=TRUE)
+# less than overall mean
+
+# Putting into a table
+mean_data<-matrix(c(overall_mean,arm_mean,back_mean,finger_mean,foot_mean,hand_mean,
+head_mean,leg_mean,toe_mean,other_mean),ncol=1,byrow=TRUE)
+mean_data
+# specify the column names and row names of matrix
+colnames(mean_data)<-c("Mean")
+rownames(mean_data)<-c("Overall","Arm","Back","Finger","Foot","Hand","Head","Leg","Toe","Other")
+# assign to table
+mean_table=as.table(mean_data)
+knitr::kable(mean_table)
+```
+
+
+Acute injuries are common in those elderly people participating in sport activities which demand high coordination, reaction time, and balance capabilities, such as ball games, down-hill skiing, and gymnastics. Muscle has been reported to be the most commonly acutelyinjured tissue among active elderly athletes. The lower extremities are the most susceptible to injury. 
+
+
+```{r}
+
+# Correlation between season statistics for players with all injuries
+cor(injurydata[19:35],use="na.or.complete")
+
+# Correlation between days on the IL with season statistics for players with all injuries
+cor(injurydata[19:35],use="na.or.complete",injurydata$`Days on IL`)
+
+# Correlation between season statistics for players with arm injuries
+cor(arm_complete[19:35])
+
+# Correlation between days on the IL with season statistics for players with arm injuries
+cor(arm_complete[19:35],arm_complete$Days.on.IL)
+
+# Correlation between season statistics for players with back injuries
+cor(back_complete[19:35])
+
+# Correlation between days on the IL with season statistics for players with back injuries
+cor(back_complete[19:35],back_complete$Days.on.IL)
+
+# Correlation between season statistics for players with finger injuries
+cor(finger_complete[19:35])
+
+# Correlation between days on the IL with season statistics for players with finger injuries
+cor(finger_complete[19:35],finger_complete$Days.on.IL)
+
+# Correlation between season statistics for players with foot injuries
+cor(foot_complete[19:35])
+
+# Correlation between days on the IL with season statistics for players with foot injuries
+cor(foot_complete[19:35],foot_complete$Days.on.IL)
+
+# Correlation between season statistics for players with hand injuries
+cor(hand_complete[19:35])
+
+# Correlation between days on the IL with season statistics for players with hand injuries
+cor(hand_complete[19:35],hand_complete$Days.on.IL)
+
+# Correlation between season statistics for players with head injuries
+cor(head_complete[19:35])
+
+# Correlation between days on the IL with season statistics for players with head injuries
+cor(head_complete[19:35],head_complete$Days.on.IL)
+
+# Correlation between season statistics for players with leg injuries
+cor(leg_complete[19:35])
+
+# Correlation between days on the IL with season statistics for players with leg injuries
+cor(leg_complete[19:35],leg_complete$Days.on.IL)
+
+# Correlation between season statistics for players with toes injuries
+cor(toe_complete[19:35])
+
+# Correlation between days on the IL with season statistics for players with toe injuries
+cor(toe_complete[19:35],toe_complete$Days.on.IL)
+
+# Correlation between season statistics for players with other injuries
+cor(other_complete[19:35])
+
+# Correlation between days on the IL with season statistics for players with other injuries
+cor(other_complete[19:35],other_complete$Days.on.IL)
+
+```
+
+
+
+
+Question: On average, how many times is a player put on the injury list given that they have played at least 5 seasons in the range 2011-2020?
+```{r}
+number_of_rows<-nrow(injurydata)
+
+# Total number of injured players in dataset is 241
+
+number_of_players<-241
+
+# Average number of injuries per player
+avginjury<-number_of_rows/number_of_players
+avginjury
+```
+The average player is put on the injury list 7.8 times
+
+
+Question: What is the probability that a player has the same injury more than once?
+
+(No calculations done here -- setting up data sets into tables and data frames)
+```{r}
+
+# First time injuries as a table
+arm_first_injury<-table(injurydata$Groupings=="Arm"&injurydata$`Frequency of Injury`=="1")
+back_first_injury<-table(injurydata$Groupings=="Back"&injurydata$`Frequency of Injury`=="1")
+finger_first_injury<-table(injurydata$Groupings=="Finger"&injurydata$`Frequency of Injury`=="1")
+foot_first_injury<-table(injurydata$Groupings=="Foot"&injurydata$`Frequency of Injury`=="1")
+hand_first_injury<-table(injurydata$Groupings=="Hand"&injurydata$`Frequency of Injury`=="1")
+head_first_injury<-table(injurydata$Groupings=="Head"&injurydata$`Frequency of Injury`=="1")
+leg_first_injury<-table(injurydata$Groupings=="Leg"&injurydata$`Frequency of Injury`=="1")
+toe_first_injury<-table(injurydata$Groupings=="Toe"&injurydata$`Frequency of Injury`=="1")
+other_first_injury<-table(injurydata$Groupings=="Other"&injurydata$`Frequency of Injury`=="1")
+
+# Total injuries as a table
+
+total_arm_injuries<-table(injurydata$Groupings=="Arm")
+total_back_injuries<-table(injurydata$Groupings=="Back")
+total_finger_injuries<-table(injurydata$Groupings=="Finger")
+total_foot_injuries<-table(injurydata$Groupings=="Foot")
+total_hand_injuries<-table(injurydata$Groupings=="Hand")
+total_head_injuries<-table(injurydata$Groupings=="Head")
+total_leg_injuries<-table(injurydata$Groupings=="Leg")
+total_toe_injuries<-table(injurydata$Groupings=="Toe")
+total_other_injuries<-table(injurydata$Groupings=="Other")
+
+
+# Second time injuries as a table
+
+arm_sec_injury<-table(injurydata$Groupings=="Arm"&injurydata$`Frequency of Injury`=="2")
+back_sec_injury<-table(injurydata$Groupings=="Back"&injurydata$`Frequency of Injury`=="2")
+finger_sec_injury<-table(injurydata$Groupings=="Finger"&injurydata$`Frequency of Injury`=="2")
+foot_sec_injury<-table(injurydata$Groupings=="Foot"&injurydata$`Frequency of Injury`=="2")
+hand_sec_injury<-table(injurydata$Groupings=="Hand"&injurydata$`Frequency of Injury`=="2")
+head_sec_injury<-table(injurydata$Groupings=="Head"&injurydata$`Frequency of Injury`=="2")
+leg_sec_injury<-table(injurydata$Groupings=="Leg"&injurydata$`Frequency of Injury`=="2")
+toe_sec_injury<-table(injurydata$Groupings=="Toe"&injurydata$`Frequency of Injury`=="2")
+other_sec_injury<-table(injurydata$Groupings=="Other"&injurydata$`Frequency of Injury`=="2")
+```
+
+```{r}
+# First injury for each grouping -- transforming contingency table into a data frame 
+# so that I am able to extract the TRUE column out of the contingency table
+
+# Arm
+arm_first_injury_df<-as.data.frame(arm_first_injury)
+arm_first_injury_df_TRUE<-arm_first_injury_df[2,2]
+arm_first_injury_df_TRUE
+
+# Back
+back_first_injury_df<-as.data.frame(back_first_injury)
+back_first_injury_df_TRUE<-back_first_injury_df[2,2]
+back_first_injury_df_TRUE
+
+# Finger
+finger_first_injury_df<-as.data.frame(finger_first_injury)
+finger_first_injury_df_TRUE<-finger_first_injury_df[2,2]
+finger_first_injury_df_TRUE
+
+# Foot
+foot_first_injury_df<-as.data.frame(foot_first_injury)
+foot_first_injury_df_TRUE<-foot_first_injury_df[2,2]
+foot_first_injury_df_TRUE
+
+# Hand
+hand_first_injury_df<-as.data.frame(hand_first_injury)
+hand_first_injury_df_TRUE<-hand_first_injury_df[2,2]
+hand_first_injury_df_TRUE
+
+# Head
+head_first_injury_df<-as.data.frame(head_first_injury)
+head_first_injury_df_TRUE<-head_first_injury_df[2,2]
+head_first_injury_df_TRUE
+
+# Leg
+leg_first_injury_df<-as.data.frame(leg_first_injury)
+leg_first_injury_df_TRUE<-leg_first_injury_df[2,2]
+leg_first_injury_df_TRUE
+
+# Toe
+toe_first_injury_df<-as.data.frame(toe_first_injury)
+toe_first_injury_df_TRUE<-toe_first_injury_df[2,2]
+toe_first_injury_df_TRUE
+
+# Other
+other_first_injury_df<-as.data.frame(other_first_injury)
+other_first_injury_df_TRUE<-other_first_injury_df[2,2]
+other_first_injury_df_TRUE
+
+
+# Putting into a table
+first_injury<-matrix(c(arm_first_injury_df_TRUE,back_first_injury_df_TRUE,finger_first_injury_df_TRUE,foot_first_injury_df_TRUE,hand_first_injury_df_TRUE,head_first_injury_df_TRUE,leg_first_injury_df_TRUE,toe_first_injury_df_TRUE,other_first_injury_df_TRUE),ncol=1,byrow=TRUE)
+
+# specify the column names and row names of matrix
+colnames(first_injury)<-c("Number of First Injuries")
+rownames(first_injury)<-c("Arm","Back","Finger","Foot","Hand","Head","Leg","Toe","Other")
+# assign to table
+first_injury_table=as.table(first_injury)
+knitr::kable(first_injury_table)
+
+
+# Total number of injuries -- transforming contingency table into a data frame 
+# so that I am able to extract the TRUE column out of the contingency table
+
+# arm
+total_arm_injuries_df<-as.data.frame(total_arm_injuries)
+total_arm_injuries_df_TRUE<-total_arm_injuries_df[2,2]
+total_arm_injuries_df_TRUE
+
+# back
+total_back_injuries_df<-as.data.frame(total_back_injuries)
+total_back_injuries_df_TRUE<-total_back_injuries_df[2,2]
+total_back_injuries_df_TRUE
+
+# finger
+total_finger_injuries_df<-as.data.frame(total_finger_injuries)
+total_finger_injuries_df_TRUE<-total_finger_injuries_df[2,2]
+total_finger_injuries_df_TRUE
+
+# foot
+total_foot_injuries_df<-as.data.frame(total_foot_injuries)
+total_foot_injuries_df_TRUE<-total_foot_injuries_df[2,2]
+total_foot_injuries_df_TRUE
+
+# Hand
+total_hand_injuries_df<-as.data.frame(total_hand_injuries)
+total_hand_injuries_df_TRUE<-total_hand_injuries_df[2,2]
+total_hand_injuries_df_TRUE
+
+# Head
+total_head_injuries_df<-as.data.frame(total_head_injuries)
+total_head_injuries_df_TRUE<-total_head_injuries_df[2,2]
+total_head_injuries_df_TRUE
+
+# Leg
+total_leg_injuries_df<-as.data.frame(total_leg_injuries)
+total_leg_injuries_df_TRUE<-total_leg_injuries_df[2,2]
+total_leg_injuries_df_TRUE
+
+# Toe
+total_toe_injuries_df<-as.data.frame(total_toe_injuries)
+total_toe_injuries_df_TRUE<-total_toe_injuries_df[2,2]
+total_toe_injuries_df_TRUE
+
+# Other
+total_other_injuries_df<-as.data.frame(total_other_injuries)
+total_other_injuries_df_TRUE<-total_other_injuries_df[2,2]
+total_other_injuries_df_TRUE
+
+table(total_arm_injuries_df_TRUE,total_back_injuries_df_TRUE)
+
+# Putting into a table
+total_injury<-matrix(c(total_arm_injuries_df_TRUE,total_back_injuries_df_TRUE,total_finger_injuries_df_TRUE,total_foot_injuries_df_TRUE,total_hand_injuries_df_TRUE,total_head_injuries_df_TRUE,total_leg_injuries_df_TRUE,total_toe_injuries_df_TRUE,total_other_injuries_df_TRUE),ncol=1,byrow=TRUE)
+
+# specify the column names and row names of matrix
+colnames(total_injury)<-c("Number of Total Injuries")
+rownames(total_injury)<-c("Arm","Back","Finger","Foot","Hand","Head","Leg","Toe","Other")
+# assign to table
+total_injury_table=as.table(total_injury)
+knitr::kable(total_injury_table)
+
+# Second injury for each grouping -- transforming contingency table into a data frame 
+# so that I am able to extract the TRUE column out of the contingency table
+
+# Arm
+arm_sec_injury_df<-as.data.frame(arm_sec_injury)
+arm_sec_injury_df_TRUE<-arm_sec_injury_df[2,2]
+arm_sec_injury_df_TRUE
+
+# Back
+back_sec_injury_df<-as.data.frame(back_sec_injury)
+back_sec_injury_df_TRUE<-back_sec_injury_df[2,2]
+back_sec_injury_df_TRUE
+
+# Finger
+finger_sec_injury_df<-as.data.frame(finger_sec_injury)
+finger_sec_injury_df_TRUE<-finger_sec_injury_df[2,2]
+finger_sec_injury_df_TRUE
+
+# Foot
+foot_sec_injury_df<-as.data.frame(foot_sec_injury)
+foot_sec_injury_df_TRUE<-foot_sec_injury_df[2,2]
+foot_sec_injury_df_TRUE
+
+# Hand
+hand_sec_injury_df<-as.data.frame(hand_sec_injury)
+hand_sec_injury_df_TRUE<-hand_sec_injury_df[2,2]
+hand_sec_injury_df_TRUE
+
+# Head
+head_sec_injury_df<-as.data.frame(head_sec_injury)
+head_sec_injury_df_TRUE<-head_sec_injury_df[2,2]
+head_sec_injury_df_TRUE
+
+# Leg
+leg_sec_injury_df<-as.data.frame(leg_sec_injury)
+leg_sec_injury_df_TRUE<-leg_sec_injury_df[2,2]
+leg_sec_injury_df_TRUE
+
+# Toe
+toe_sec_injury_df<-as.data.frame(toe_sec_injury)
+toe_sec_injury_df_TRUE<-toe_sec_injury_df[2,2]
+toe_sec_injury_df_TRUE
+
+# Other
+other_sec_injury_df<-as.data.frame(other_sec_injury)
+other_sec_injury_df_TRUE<-other_sec_injury_df[2,2]
+other_sec_injury_df_TRUE
+
+# Putting into a table
+sec_injury<-matrix(c(arm_sec_injury_df_TRUE,back_sec_injury_df_TRUE,finger_sec_injury_df_TRUE,foot_sec_injury_df_TRUE,hand_sec_injury_df_TRUE,head_sec_injury_df_TRUE,leg_sec_injury_df_TRUE,toe_sec_injury_df_TRUE,other_sec_injury_df_TRUE),ncol=1,byrow=TRUE)
+
+# specify the column names and row names of matrix
+colnames(sec_injury)<-c("Number of Second Injuries")
+rownames(sec_injury)<-c("Arm","Back","Finger","Foot","Hand","Head","Leg","Toe","Other")
+# assign to table
+sec_injury_table=as.table(sec_injury)
+knitr::kable(sec_injury_table)
+
+```
+
+Given that you have had an injury, what is the probability that it is the first injury of this grouping type?
+```{r}
+prob_first<-first_injury_table/total_injury_table
+colnames(prob_first)<-"Probability of First Injury"
+prob_first
+
+# specify the column names and row names of matrix
+colnames(prob_first)<-c("Probability of First Injury")
+rownames(prob_first)<-c("Arm","Back","Finger","Foot","Hand","Head","Leg","Toe","Other")
+# assign to table
+prob_first_table=as.table(prob_first)
+knitr::kable(prob_first_table)
+```
+A hand injury has the highest probability that it is the first injury and a leg injury has the lowest probability that it is the first injury. This makes sense because one would expect there to be the most leg injuries in basketball since injured ACLs are one of the most common injuries. On the other hand, hand injuries are in the running for the least common injuries. 
+
+
+Given that you have had an injury, what is the probability that it is the second injury of this grouping type?
+```{r}
+prob_sec<-sec_injury_table/total_injury_table
+colnames(prob_sec)<-"Probability of Second Injury"
+prob_sec
+```
+
+
+(total injury - first time injury) / total injury = probability of same injury reoccurring
+
+Given that you have had one particular injury, what is the probability of having the same injury?
+```{r}
+# reinjure arm
+reinjure_arm<-(total_arm_injuries_df_TRUE - arm_first_injury_df_TRUE) / total_arm_injuries_df_TRUE
+reinjure_arm
+
+# reinjure back
+reinjure_back<-(total_back_injuries_df_TRUE - back_first_injury_df_TRUE) / total_back_injuries_df_TRUE
+reinjure_back
+
+# reinjure finger
+reinjure_finger<-(total_finger_injuries_df_TRUE - finger_first_injury_df_TRUE) / total_finger_injuries_df_TRUE
+reinjure_finger
+
+# reinjure foot
+reinjure_foot<-(total_foot_injuries_df_TRUE - foot_first_injury_df_TRUE) / total_foot_injuries_df_TRUE
+reinjure_foot
+
+# reinjure hand
+reinjure_hand<-(total_hand_injuries_df_TRUE - hand_first_injury_df_TRUE) / total_hand_injuries_df_TRUE
+reinjure_hand
+
+# reinjure head
+reinjure_head<-(total_head_injuries_df_TRUE - head_first_injury_df_TRUE) / total_head_injuries_df_TRUE
+reinjure_head
+
+# reinjure leg
+reinjure_leg<-(total_leg_injuries_df_TRUE - leg_first_injury_df_TRUE) / total_leg_injuries_df_TRUE
+reinjure_leg
+
+# reinjure toe
+reinjure_toe<-(total_toe_injuries_df_TRUE - toe_first_injury_df_TRUE) / total_toe_injuries_df_TRUE
+reinjure_toe
+
+# reinjure other
+reinjure_other<-(total_other_injuries_df_TRUE - other_first_injury_df_TRUE) / total_other_injuries_df_TRUE
+reinjure_other
+
+# Putting into a table
+reinjure<-matrix(c(reinjure_arm,reinjure_back,reinjure_finger,reinjure_foot,reinjure_hand,reinjure_head,reinjure_leg,reinjure_toe,reinjure_other),ncol=1,byrow=TRUE)
+
+# specify the column names and row names of matrix
+colnames(reinjure)<-c("Reinjure Probability")
+rownames(reinjure)<-c("Arm","Back","Finger","Foot","Hand","Head","Leg","Toe","Other")
+# assign to table
+reinjure_table=as.table(reinjure)
+knitr::kable(reinjure_table)
+```
+Leg injuries have the highest probability of reinjure which makes sense since this grouping has the overall highest injury rate. Hand injuries have the lowest probability of reinjure which makes sense since this grouping has one of the lowest injury rates. 
+
+
+
+
+

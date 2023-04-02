@@ -1,0 +1,478 @@
+---
+title: "Thesis_Scratch2"
+output: pdf_document
+date: "2023-03-07"
+---
+
+Used a Cox proportional hazard model (coxph) to model the relationship between days on the injury list and the age of the player when the injury occurred, the player's height, the player's weight, and the cumulative minutes the player played during the regular season. 
+
+Censory indicator -- 1 if event is censored vs 0 if event is uncensored
+
+Libraries 
+```{r}
+library(readxl)
+library(ggplot2)
+library(gridExtra)
+library(cowplot)
+library(KMsurv)
+library(survival)
+library(MASS)
+```
+
+Reading in pathway to excel document that contains all injuries with statistics for each respective season
+```{r}
+injurydata=read_excel("C:\\Sammi\\Thesis\\Complete Injury Log with Stats.xlsx")
+```
+
+
+Season 1
+```{r}
+# subsetting to only data in the first season
+first_season<-subset(injurydata,injurydata$Season=="2011-2012")
+first_season
+
+# creating a dummy variable for censory indicator
+z1=ifelse(first_season$`Censored Indicator`=="1",1,0)
+z1
+
+season_1<-coxph(Surv(first_season$`Minutes Before Injury`,z1)~first_season$FGA+first_season$FTA+first_season$REB
++first_season$`Number of Seasons Played`+first_season$FGM+first_season$FTM+
+first_season$FTA+first_season$TOV+first_season$PF+first_season$AST
++first_season$STL+first_season$BLK+first_season$PTS+first_season$`Height cm`
++first_season$Weight+first_season$`3PA`+(first_season$`3PA`*first_season$Position)+(first_season$Age*first_season$PTS)+(first_season$Age*first_season$Position)
+,data=first_season)
+fit1<-stepAIC(season_1,direction="both",k=2)
+
+summary(season_1)
+
+#plotting survival curve for injury occurring in the first season
+survival_curve1=plot(survfit(season_1), ylim=c(0,1),xlim=c(0,1500),main="Survival Curve Season 1",xlab="Years",ylab="Survival Probability")
+survival_curve1
+
+# Cox-Residuals for assessing model fit
+# If the model is not a good fit, this could be because of outliers
+coxres_1<-season_1$y[,2]-residuals(season_1)
+coxres_season1<-survfit(Surv(coxres_1,season_1$y[,2])~1)
+plot(coxres_season1,fun="cumhaz",bty="n",lwd=2,las=1,xlim=c(0,1.2),ylim=c(0,1.5),main="Cox-Residuals Season 1",xlab="Residual", ylab="Cumulative hazard")
+abline(0, 1, col="red", lwd=2)
+
+
+# Martingale Residuals
+plot(season_1$linear.predictors,residuals(season_1),ylim=c(-2,2),pch=19,las=1, bty="n",col=5:6,main="Martingale Residuals Season 1",xlab="Prognostic Index", ylab="Martingale Residual")
+abline(0,0,lty=2,lwd=2)
+legend("bottomleft", c("Censored","Failures"),cex=0.8,col=5:6,pch=19)
+
+```
+
+Season 2
+```{r}
+# subsetting to only data in the second season
+second_season<-subset(injurydata,injurydata$Season=="2012-2013")
+second_season
+
+# creating a dummy variable for censory indicator
+z2=ifelse(second_season$`Censored Indicator`=="1",1,0)
+z2
+
+season_2<-coxph(Surv(second_season$`Minutes Before Injury`,z2)~second_season$FGA+second_season$FTA+second_season$REB
++second_season$`Number of Seasons Played`+second_season$FGM+second_season$FTM+
+second_season$FTA+second_season$TOV+second_season$PF+second_season$AST
++second_season$STL+second_season$BLK+second_season$PTS+second_season$`Height cm`
++second_season$Weight+second_season$`3PA`+(second_season$`3PA`*second_season$Position)+(second_season$Age*second_season$PTS)+(second_season$Age*second_season$Position)
+,data=second_season)
+fit2<-stepAIC(season_2,direction="both",k=2)
+
+season_2
+
+summary(season_2)
+
+#plotting survival curve for injury occurring in the second season
+plot(survfit(season_2))
+
+# Cox-Residuals for assessing model fit
+coxres_2<-season_2$y[,2]-residuals(season_2)
+coxres_season2<-survfit(Surv(coxres_2,season_2$y[,2])~1)
+plot(coxres_season2,fun="cumhaz",bty="n",lwd=2, las=1,xlim=c(0,1.2),ylim=c(0,1.5),
+     xlab="Residual", ylab="Cumulative hazard")
+abline(0, 1, col="red", lwd=2)
+
+# Martingale Residuals
+plot(season_2$linear.predictors,residuals(season_2),ylim=c(-2,2),pch=19,las=1, bty="n", col=5:6,main="Martingale Residuals Season 2",xlab="Prognostic Index", ylab="Martingale Residual")
+abline(0,0,lty=2,lwd=2)
+legend("bottomleft", c("Censored","Failures"),cex=0.8,col=5:6,pch=19)
+
+```
+
+Season 3
+```{r}
+# subsetting to only data in the third season
+third_season<-subset(injurydata,injurydata$Season=="2013-2014")
+third_season
+
+# creating a dummy variable for censory indicator
+z3=ifelse(third_season$`Censored Indicator`=="1",1,0)
+z3
+
+# running stepwise function on all covariates in third season
+season_3<-coxph(Surv(third_season$`Minutes Before Injury`,z3)~third_season$FGA+third_season$FTA+third_season$REB
++third_season$`Number of Seasons Played`+third_season$FGM+third_season$FTM+
+third_season$FTA+third_season$TOV+third_season$PF+third_season$AST
++third_season$STL+third_season$BLK+third_season$PTS+third_season$`Height cm`
++third_season$Weight+third_season$`3PA`+(third_season$`3PA`*third_season$Position)+(third_season$Age*third_season$PTS)+(third_season$Age*third_season$Position)
+,data=third_season)
+fit3<-stepAIC(season_3,direction="both",k=2)
+
+summary(season_3)
+
+#plotting survival curve for injury occurring in the third season
+survival_curve3<-plot(survfit(season_3),main="Survival Curve Season 3",xlab="Time",ylab="Survival Probability")
+survival_curve3
+
+# Cox-Residuals for assessing model fit
+coxres_3<-season_3$y[,2]-residuals(season_3)
+coxres_season3<-survfit(Surv(coxres_3,season_3$y[,2])~1)
+plot(coxres_season3,fun="cumhaz",bty="n",lwd=2,las=1,xlim=c(0,1.2),ylim=c(0,1.5),main="Cox-Residuals Season 3",xlab="Residual", ylab="Cumulative hazard")
+abline(0, 1, col="red", lwd=2)
+
+
+
+# Martingale Residuals
+plot(season_3$linear.predictors,residuals(season_3),ylim=c(-2,2),pch=19,las=1, bty="n",col=5:6,main="Martingale Residuals Season 3",xlab="Prognostic Index", ylab="Martingale Residual")
+abline(0,0,lty=2,lwd=2)
+legend("bottomleft", c("Censored","Failures"),cex=0.8,col=5:6,pch=19)
+ 
+```
+Season 4
+```{r}
+# subsetting to only data in the fourth season
+fourth_season<-subset(injurydata,injurydata$Season=="2014-2015")
+fourth_season
+
+# creating a dummy variable for censory indicator
+z4=ifelse(fourth_season$`Censored Indicator`=="1",1,0)
+z4
+
+# running stepwise function on all covariates in fourth season
+season_4<-coxph(Surv(fourth_season$`Minutes Before Injury`,z4)~fourth_season$FGA+fourth_season$FTA+fourth_season$REB
++fourth_season$`Number of Seasons Played`+fourth_season$FGM+fourth_season$FTM+
+fourth_season$FTA+fourth_season$TOV+fourth_season$PF+fourth_season$AST
++fourth_season$STL+fourth_season$BLK+fourth_season$PTS+fourth_season$`Height cm`
++fourth_season$Weight+fourth_season$`3PA`+(fourth_season$`3PA`*fourth_season$Position)+(fourth_season$Age*fourth_season$PTS)+(fourth_season$Age*fourth_season$Position)
+,data=fourth_season)
+fit4<-stepAIC(season_4,direction="both",k=2)
+
+summary(season_4)
+
+#plotting survival curve for injury occurring in the fourth season
+survival_curve4<-plot(survfit(season_4),main="Survival Curve Season 4",xlab = "Time",ylab="Survival Probability")
+survival_curve4
+
+# Cox-Residuals for assessing model fit
+coxres_4<-season_4$y[,2]-residuals(season_4)
+coxres_season4<-survfit(Surv(coxres_4,season_4$y[,2])~1)
+plot(coxres_season4,fun="cumhaz",bty="n",lwd=2,las=1,xlim=c(0,2),main="Cox-Residuals Season 4",xlab="Residual", ylab="Cumulative hazard")
+abline(0, 1, col="red", lwd=2)
+
+
+# Martingale Residuals
+plot(season_4$linear.predictors,residuals(season_4),ylim=c(-2,2),pch=19,las=1, bty="n",col=5:6,main="Martingale Residuals Season 4",xlab="Prognostic Index", ylab="Martingale Residual")
+abline(0,0,lty=2,lwd=2)
+legend("bottomleft", c("Censored","Failures"),cex=0.8,col=5:6,pch=19)
+```
+Season 5
+```{r}
+# subsetting to only data in the fifth season
+fifth_season<-subset(injurydata,injurydata$Season=="2015-2016")
+fifth_season
+
+# creating a dummy variable for censory indicator
+z5=ifelse(fifth_season$`Censored Indicator`=="1",1,0)
+z5
+
+# running stepwise function on all covariates in fifth season
+season_5<-coxph(Surv(fifth_season$`Minutes Before Injury`,z5)~fifth_season$FGA+fifth_season$FTA+fifth_season$REB
++fifth_season$`Number of Seasons Played`+fifth_season$FGM+fifth_season$FTM+
+  fifth_season$FTA+fifth_season$TOV+fifth_season$PF+fifth_season$AST
++fifth_season$STL+fifth_season$BLK+fifth_season$PTS+fifth_season$`Height cm`
++fifth_season$Weight+fifth_season$`3PA`+(fifth_season$`3PA`*fifth_season$Position)+(fifth_season$Age*fifth_season$PTS)+(fifth_season$Age*fifth_season$Position)
+,data=fifth_season)
+fit5<-stepAIC(season_5,direction="both",k=2)
+
+summary(season_5)
+
+#plotting survival curve for injury occurring in the fifth season
+survival_curve5<-plot(survfit(season_5), ylim=c(0,1),main="Survival Curve Season 5")
+survival_curve5
+
+# Cox-Residuals for assessing model fit
+coxres_5<-season_5$y[,2]-residuals(season_5)
+coxres_season5<-survfit(Surv(coxres_5,season_5$y[,2])~1)
+plot(coxres_season5,fun="cumhaz",bty="n",lwd=2,las=1,xlim=c(0,1.2),ylim=c(0,1.5), main="Cox-Residuals Season 5",xlab="Residual", ylab="Cumulative hazard")
+abline(0, 1, col="red", lwd=2)
+
+
+# Martingale Residuals
+plot(season_5$linear.predictors,residuals(season_5),ylim=c(-2,2),pch=19,las=1, bty="n",col=5:6,main="Martingale Residuals Season 5",xlab="Prognostic Index", ylab="Martingale Residual")
+abline(0,0,lty=2,lwd=2)
+legend("bottomleft", c("Censored","Failures"),cex=0.8,col=5:6,pch=19)
+
+```
+
+Season 6
+```{r}
+# subsetting to only data in the sixth season
+sixth_season<-subset(injurydata,injurydata$Season=="2016-2017")
+sixth_season
+
+# creating a dummy variable for censory indicator
+z6=ifelse(sixth_season$`Censored Indicator`=="1",1,0)
+z6
+
+# running stepwise function on all covariates in sixth season
+season_6<-coxph(Surv(sixth_season$`Minutes Before Injury`,z6)~sixth_season$FGA+sixth_season$FTA+sixth_season$REB
++sixth_season$`Number of Seasons Played`+sixth_season$FGM+sixth_season$FTM+
+sixth_season$FTA+sixth_season$TOV+sixth_season$PF+sixth_season$AST
++sixth_season$STL+sixth_season$BLK+sixth_season$PTS+sixth_season$`Height cm`
++sixth_season$Weight+sixth_season$`3PA`+(sixth_season$`3PA`*sixth_season$Position)+(sixth_season$Age*sixth_season$PTS)+(sixth_season$Age*sixth_season$Position)
+,data=sixth_season)
+fit6<-stepAIC(season_6,direction="both",k=2)
+summary(season_6)
+
+#plotting survival curve for injury occurring in the sixth season
+survival_curve6<-plot(survfit(season_6),ylim=c(0,1),main="Survival Curve Season 6")
+survival_curve6
+
+# Cox-Residuals for assessing model fit
+coxres_6<-season_6$y[,2]-residuals(season_6)
+coxres_season6<-survfit(Surv(coxres_6,season_6$y[,2])~1)
+plot(coxres_season6,fun="cumhaz",bty="n",lwd=2,las=1,xlim=c(0,6),main="Cox-Residuals Season 6",xlab="Residual", ylab="Cumulative hazard")
+abline(0, 1, col="red", lwd=2)
+
+
+# Martingale Residuals
+plot(season_6$linear.predictors,residuals(season_6),ylim=c(-2,2),pch=19,las=1, bty="n",col=5:6,main="Martingale Residuals Season 6",xlab="Prognostic Index", ylab="Martingale Residual")
+abline(0,0,lty=2,lwd=2)
+legend("bottomleft", c("Censored","Failures"),cex=0.8,col=5:6,pch=19)
+```
+Season 7
+```{r}
+# subsetting to only data in the seventh season
+seventh_season<-subset(injurydata,injurydata$Season=="2017-2018")
+seventh_season
+
+# creating a dummy variable for censory indicator
+z7=ifelse(seventh_season$`Censored Indicator`=="1",1,0)
+z7
+
+# running stepwise function on all covariates in seventh season
+season_7<-coxph(Surv(seventh_season$`Minutes Before Injury`,z7)~seventh_season$FGA+seventh_season$FTA+seventh_season$REB
++seventh_season$`Number of Seasons Played`+seventh_season$FGM+seventh_season$FTM+
+seventh_season$FTA+seventh_season$TOV+seventh_season$PF+seventh_season$AST
++seventh_season$STL+seventh_season$BLK+seventh_season$PTS+seventh_season$`Height cm`
++seventh_season$Weight+seventh_season$`3PA`+(seventh_season$`3PA`*seventh_season$Position)+(seventh_season$Age*seventh_season$PTS)+(seventh_season$Age*seventh_season$Position)
+,data=seventh_season)
+fit7<-stepAIC(season_7,direction="both",k=2)
+
+summary(season_7)
+
+
+# Cox-Residuals for assessing model fit
+coxres_7<-season_7$y[,2]-residuals(season_7)
+coxres_season7<-survfit(Surv(coxres_7,season_7$y[,2])~1)
+plot(coxres_season7,fun="cumhaz",bty="n",lwd=2,las=1,xlim=c(0,1),ylim=c(0,1.5),main="Cox-Residuals Season 7",xlab="Residual", ylab="Cumulative hazard")
+abline(0, 1, col="red", lwd=2)
+
+# Martingale Residuals
+plot(season_7$linear.predictors,residuals(season_7),ylim=c(-2,2),pch=19,las=1, bty="n",col=5:6,main="Martingale Residuals Season 7",xlab="Time", ylab="Martingale Residual")
+abline(0,0,lty=2,lwd=2)
+legend("bottomleft", c("Censored","Failures"),cex=0.8,col=5:6,pch=19)
+```
+
+Season 8
+```{r}
+# subsetting to only data in the eighth season
+eighth_season<-subset(injurydata,injurydata$Season=="2018-2019")
+eighth_season
+
+# creating a dummy variable for censory indicator
+z8=ifelse(eighth_season$`Censored Indicator`=="1",1,0)
+z8
+
+# running stepwise function on all covariates in eighth season
+season_8<-coxph(Surv(eighth_season$`Minutes Before Injury`,z8)~eighth_season$FGA+eighth_season$FTA+eighth_season$REB
++eighth_season$`Number of Seasons Played`+eighth_season$FGM+eighth_season$FTM+
+eighth_season$FTA+eighth_season$TOV+eighth_season$PF+eighth_season$AST
++eighth_season$STL+eighth_season$BLK+eighth_season$PTS+eighth_season$`Height cm`
++eighth_season$Weight+eighth_season$`3PA`+(eighth_season$`3PA`*eighth_season$Position)+(eighth_season$Age*eighth_season$PTS)+(eighth_season$Age*eighth_season$Position)
+,data=eighth_season)
+fit8<-stepAIC(season_8,direction="both",k=2)
+
+summary(season_8)
+
+#plotting survival curve for injury occurring in the eighth season
+survival_curve8<-plot(survfit(season_8), ylim=c(0,1),main="Survival Curve Season 8",xlab="Time",ylab="Survival Probaility")
+survival_curve8
+
+# Cox-Residuals for assessing model fit
+coxres_8<-season_8$y[,2]-residuals(season_8)
+coxres_season8<-survfit(Surv(coxres_8,season_8$y[,2])~1)
+plot(coxres_season8,fun="cumhaz",bty="n",lwd=2,las=1,xlim=c(0,1.2),ylim=c(0,1.5),main="Cox-Residuals Season 8",xlab="Residual", ylab="Cumulative hazard")
+abline(0, 1, col="red", lwd=2)
+
+
+# Martingale Residuals
+plot(season_8$linear.predictors,residuals(season_8),ylim=c(-2,2),pch=19,las=1, bty="n",col=5:6,main="Martingale Residuals Season 8",xlab="Prognostic Index", ylab="Martingale Residual")
+abline(0,0,lty=2,lwd=2)
+legend("bottomleft", c("Censored","Failures"),cex=0.8,col=5:6,pch=19)
+```
+
+Season 9
+```{r}
+# subsetting to only data in the ninth season
+ninth_season<-subset(injurydata,injurydata$Season=="2019-2020")
+ninth_season
+
+# creating a dummy variable for censory indicator
+z9=ifelse(ninth_season$`Censored Indicator`=="1",1,0)
+z9
+
+# running stepwise function on all covariates in ninth season
+season_9<-coxph(Surv(ninth_season$`Minutes Before Injury`,z9)~ninth_season$FGA+ninth_season$FTA+ninth_season$REB
++ninth_season$`Number of Seasons Played`+ninth_season$FGM+ninth_season$FTM+
+ninth_season$FTA+ninth_season$TOV+ninth_season$PF+ninth_season$AST
++ninth_season$STL+ninth_season$BLK+ninth_season$PTS+ninth_season$`Height cm`
++ninth_season$Weight+ninth_season$`3PA`+(ninth_season$`3PA`*ninth_season$Position)+(ninth_season$Age*ninth_season$PTS)+(ninth_season$Age*ninth_season$Position)
+,data=ninth_season)
+fit9<-stepAIC(season_9,direction="both",k=2)
+
+summary(season_9)
+
+#plotting survival curve for injury occurring in the ninth season
+survival_curve9<-plot(survfit(season_9),xlim=c(0,100), ylim=c(0,1),main="Survival Curve Season 9")
+survival_curve9
+
+# Cox-Residuals for assessing model fit
+coxres_9<-season_9$y[,2]-residuals(season_9)
+coxres_season9<-survfit(Surv(coxres_9,season_9$y[,2])~1)
+plot(coxres_season9,fun="cumhaz",bty="n",lwd=2,las=1,xlim=c(0,1.2),ylim=c(0,1.5),main="Cox-Residuals Season 9",xlab="Residual", ylab="Cumulative hazard")
+abline(0, 1, col="red", lwd=2)
+
+# Martingale Residuals
+plot(season_9$linear.predictors,residuals(season_9),ylim=c(-2,2),pch=19,las=1, bty="n",col=5:6,main="Martingale Residuals Season 9",xlab="Prognostic Index", ylab="Martingale Residual")
+abline(0,0,lty=2,lwd=2)
+legend("bottomleft", c("Censored","Failures"),cex=0.8,col=5:6,pch=19)
+```
+
+Table indicating number of times each covariate was present in the lowest AIC model for each individual season
+```{r}
+freq<-matrix(c(7,4,3,3,9,6,4,4,5,1,4,2,1,4,5,3,7,6,2,1),ncol=20,byrow=FALSE)
+colnames(freq)<-c("FGA","FGM", "FTA","FTM","3PA","PTS","REB","TOV","AST","STL",
+                  "PF","BLK","Height","Weight","Age","Number of Seasons Played",
+                  "Position","3PA:Position", "Age:PTS","Age:Position")
+rownames(freq)<-c("Times Occurred")
+
+freqtab<-as.table(freq)
+freqtab
+```
+
+
+All Seasons
+```{r}
+all_seasons<-coxph(Surv(injurydata$`Minutes Before Injury`,injurydata$`Censory Indicator`)~injurydata$FGA+
+injurydata$FTA+injurydata$REB
++injurydata$`Number of Seasons Played`+injurydata$FGM+injurydata$FTM+
+injurydata$FTA+injurydata$TOV+injurydata$PF+injurydata$AST
++injurydata$STL+injurydata$BLK+injurydata$PTS+injurydata$`Height cm`
++injurydata$Weight+injurydata$`3PA`+(injurydata$`3PA`*injurydata$Position)+(injurydata$Age*injurydata$PTS)+(injurydata$Age*injurydata$Position)
+,data=injurydata)
+
+summary(all_seasons)
+
+
+#plotting survival curve for injury occurring in the all seasons
+survival_curveall<-plot(survfit(all_seasons), ylim=c(0,1),xlab="Time",ylab="Survival Probability",main="Survival Curve All Seasons")
+survival_curveall
+
+# Cox-Residuals for assessing model fit
+coxres_all<-all_seasons$y[,2]-residuals(all_seasons)
+coxres_allseasons<-survfit(Surv(coxres_all,all_seasons$y[,2])~1)
+plot(coxres_allseasons,fun="cumhaz",bty="n",lwd=2,las=1,xlim=c(0,1.2),ylim=c(0,1.5),main="Cox-Residuals All Seasons",xlab="Residual", ylab="Cumulative hazard")
+abline(0, 1, col="red", lwd=2)
+
+
+
+# Martingale Residuals
+plot(all_seasons$linear.predictors,residuals(all_seasons),ylim=c(-4,4),pch=19,las=1, bty="n",col=5:6,main="Martingale Residuals All Seasons",xlab="Time", ylab="Martingale Residual")
+abline(0,0,lty=2,lwd=2)
+legend("bottomleft", c("Censored","Failures"),cex=0.8,col=5:6,pch=19)
+
+```
+
+Removing the 2011-2012 Season because only 66 games were possible
+```{r}
+sinjurydata<-subset(injurydata,injurydata$Season!="2011-2012")
+sinjurydata
+
+wo_second<-coxph(Surv(sinjurydata$`Minutes Before Injury`,sinjurydata$`Censory Indicator`)~sinjurydata$FGA+
+sinjurydata$FTA+sinjurydata$REB
++sinjurydata$`Number of Seasons Played`+sinjurydata$FGM+sinjurydata$FTM+
+sinjurydata$FTA+sinjurydata$TOV+sinjurydata$PF+sinjurydata$AST
++sinjurydata$STL+sinjurydata$BLK+sinjurydata$PTS+sinjurydata$`Height cm`
++sinjurydata$Weight+sinjurydata$`3PA`+(sinjurydata$`3PA`*sinjurydata$Position)+(sinjurydata$Age*sinjurydata$PTS)+(sinjurydata$Age*sinjurydata$Position)
+,data=sinjurydata)
+
+summary(wo_second)
+
+fitall<-stepAIC(wo_second,direction="both",k=2)
+
+#plotting survival curve for injury occurring in the all seasons
+survival_curvewo<-plot(survfit(wo_second), ylim=c(0,1),xlab="Time",ylab="Survival Probability",main="Survival Curve All Seasons")
+survival_curvewo
+
+# Cox-Residuals for assessing model fit
+coxres_wo<-wo_second$y[,2]-residuals(wo_second)
+coxres_wo_second<-survfit(Surv(coxres_wo,wo_second$y[,2])~1)
+plot(coxres_wo_second,fun="cumhaz",bty="n",lwd=2,las=1,xlim=c(0,1.2),ylim=c(0,1.5),main="Cox-Residuals All Seasons",xlab="Residual", ylab="Cumulative hazard")
+abline(0, 1, col="red", lwd=2)
+
+
+# Martingale Residuals
+plot(wo_second$linear.predictors,residuals(wo_second),ylim=c(-4,4),pch=19,las=1, bty="n",col=5:6,main="Martingale Residuals All Seasons",xlab="Time", ylab="Martingale Residual")
+abline(0,0,lty=2,lwd=2)
+legend("bottomleft", c("Censored","Failures"),cex=0.8,col=5:6,pch=19)
+
+```
+
+
+All Seasons using the stepAIC covariates from the previous model and removing the 2011-2012 Season
+```{r}
+sinjurydata<-subset(injurydata,injurydata$Season!="2011-2012")
+sinjurydata
+
+final_wosec<-coxph(Surv(sinjurydata$`Minutes Before Injury`,sinjurydata$`Censory Indicator`)~sinjurydata$FGA+
+sinjurydata$REB
++sinjurydata$`Number of Seasons Played`+sinjurydata$FGM+
+sinjurydata$PF+sinjurydata$AST+sinjurydata$STL
++sinjurydata$BLK+sinjurydata$`3PA`+sinjurydata$Position+sinjurydata$Age
+,data=sinjurydata)
+
+summary(final_wosec)
+
+#plotting survival curve for injury occurring in the all seasons
+survival_curvewo<-plot(survfit(final_wosec), ylim=c(0,1),xlab="Time",ylab="Survival Probability",main="Survival Curve Final Model")
+survival_curvewo
+
+# Cox-Residuals for assessing model fit
+coxres_wo<-final_wosec$y[,2]-residuals(final_wosec)
+coxres_wo_second<-survfit(Surv(coxres_wo,final_wosec$y[,2])~1)
+plot(coxres_wo_second,fun="cumhaz",bty="n",lwd=2,las=1,xlim=c(0,1.2),ylim=c(0,1.5),main="Cox-Residuals Final Model",xlab="Residual", ylab="Cumulative hazard")
+abline(0, 1, col="red", lwd=2)
+
+
+
+# Martingale Residuals
+plot(final_wosec$linear.predictors,residuals(final_wosec),ylim=c(-4,4),pch=19,las=1, bty="n",col=5:6,main="Martingale Residuals Final Model",xlab="Time", ylab="Martingale Residual")
+abline(0,0,lty=2,lwd=2)
+legend("bottomleft", c("Censored","Failures"),cex=0.8,col=5:6,pch=19)
+```
+
